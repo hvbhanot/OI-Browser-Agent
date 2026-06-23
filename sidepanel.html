@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>OpenWebUI</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0f0f0f;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      #frame {
+        width: 100%;
+        height: 100vh;
+        border: none;
+        display: block;
+      }
+      #loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: #e5e5e5;
+        background: #0f0f0f;
+        z-index: 10;
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Screenshot capture overlay */
+      #capture {
+        position: fixed;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        background: rgba(15, 15, 15, 0.98);
+        color: #e5e5e5;
+        z-index: 100;
+        padding: 14px;
+        box-sizing: border-box;
+      }
+      #capture h2 {
+        font-size: 14px;
+        margin: 0 0 4px;
+        color: #ffffff;
+      }
+      #capture .sub {
+        font-size: 12px;
+        color: #999999;
+        margin: 0 0 12px;
+      }
+      #capturePreview {
+        width: 100%;
+        flex: 1;
+        object-fit: contain;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        background: #000;
+        margin-bottom: 12px;
+        min-height: 120px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      .btn {
+        border: 1px solid #2a2a2a;
+        background: #1a1a1a;
+        color: #e5e5e5;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn:hover {
+        background: #2a2a2a;
+      }
+      .btn.primary {
+        background: #ffffff;
+        border-color: #ffffff;
+        color: #0f0f0f;
+      }
+      .btn.primary:hover {
+        background: #e5e5e5;
+      }
+      #status {
+        font-size: 12px;
+        color: #999999;
+        margin-top: 8px;
+        min-height: 16px;
+      }
+      #status.error {
+        color: #ef4444;
+      }
+      #status.ok {
+        color: #10b981;
+      }
+
+      /* Floating capture button */
+      .fab {
+        position: fixed;
+        left: calc(100% - 60px);
+        top: calc(100% - 60px);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        color: #e5e5e5;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        transition: background 0.15s, transform 0.1s;
+        z-index: 50;
+        user-select: none;
+      }
+      .fab:hover {
+        background: #2a2a2a;
+        transform: scale(1.06);
+      }
+      .fab:active {
+        transform: scale(0.96);
+      }
+      .fab.dragging {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
+      .fab svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader">
+      <div class="spinner"></div>
+      <span>Loading OpenWebUI…</span>
+    </div>
+    <iframe id="frame" src="about:blank"></iframe>
+
+    <button id="captureBtn" class="fab" title="Capture this tab and send to OpenWebUI">
+      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+    </button>
+
+    <div id="capture">
+      <h2>Screenshot captured</h2>
+      <p class="sub">Paste it into OpenWebUI chat.</p>
+      <img id="capturePreview" alt="screenshot" />
+      <div class="actions">
+        <button id="cancelBtn" class="btn">Cancel</button>
+        <button id="sendBtn" class="btn primary">Paste into chat</button>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
