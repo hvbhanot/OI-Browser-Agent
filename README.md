@@ -29,7 +29,10 @@ A Chrome extension that opens your [Open WebUI](https://github.com/open-webui/op
 
 ## Install the extension
 
-1. Clone this repo
+1. Clone this repo:
+   ```bash
+   git clone https://github.com/hvbhanot/OI-Browser-Agent.git
+   ```
 2. Open `chrome://extensions/` → enable **Developer mode**
 3. Click **Load unpacked** → select this folder
 4. Pin **Open WebUI Browser Agent** in the toolbar
