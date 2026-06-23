@@ -153,8 +153,15 @@
   };
 
   function notifyReady() {
-    window.parent.postMessage({ type: "SIDEKICK_READY", version: "1.8.1" }, "*");
+    try {
+      window.parent.postMessage({ type: "SIDEKICK_READY", version: "1.8.1" }, "*");
+    } catch (_e) {}
   }
+
+  window.addEventListener("message", (event) => {
+    if (event.source !== window.parent) return;
+    if (event.data?.type === "SIDEKICK_PING") notifyReady();
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", notifyReady);

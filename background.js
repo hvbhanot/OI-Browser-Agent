@@ -318,6 +318,8 @@ let agentControlActive = false;
 let agentControlledTabId = null;
 
 chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabId === lastUserTabId) lastUserTabId = null;
+  if (tabId === lastBrowsedTabId) lastBrowsedTabId = null;
   if (tabId === agentControlledTabId) {
     agentControlActive = false;
     agentControlledTabId = null;
@@ -381,13 +383,9 @@ chrome.commands.onCommand.addListener((command, tab) => {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "capture-request") {
-    getCurrentUserTab()
-      .then((tab) => {
-        if (!tab) throw new Error("Click the website tab you want to capture, then try again");
-        return captureAndSend(tab.id);
-      })
-      .catch((e) => console.error("capture-request failed", e));
-    sendResponse({ ok: true });
+    captureTabScreenshotForChat()
+      .then((dataUrl) => sendResponse({ ok: true, dataUrl }))
+      .catch((e) => sendResponse({ ok: false, error: String(e?.message || e) }));
     return true;
   }
   if (msg.type === "page-text-request") {
@@ -482,18 +480,92 @@ function normalizeUrl(url) {
   return u;
 }
 
-async function captureAndSend(tabId) {
+function isValidTabId(tabId) {
+  return Number.isInteger(tabId) && tabId >= 0;
+}
+
+function isUsableUserTab(tab) {
+  return !!tab && isValidTabId(tab.id) && isBrowsableTab(tab);
+}
+
+async function resolveCaptureTab(preferredTabId) {
+  if (isValidTabId(preferredTabId)) {
+    try {
+      const tab = await chrome.tabs.get(preferredTabId);
+      if (isUsableUserTab(tab) && !(await isAgentTargetTab(tab))) {
+        rememberTab(tab);
+        return tab;
+      }
+    } catch (_e) {}
+  }
+
+  const current = await getCurrentUserTab();
+  if (current && isValidTabId(current.id)) return current;
+
+  const win = await chrome.windows.getLastFocused({ populate: true }).catch(() => null);
+  if (!win?.tabs?.length) return null;
+
+  const browsable = [];
+  for (const t of win.tabs) {
+    if (!isUsableUserTab(t)) continue;
+    if (!(await isAgentTargetTab(t))) browsable.push(t);
+  }
+
+  const active = browsable.find((t) => t.active);
+  if (active) {
+    rememberTab(active);
+    return active;
+  }
+  if (browsable.length) {
+    rememberTab(browsable[0]);
+    return browsable[0];
+  }
+
+  return null;
+}
+
+async function captureTabScreenshotForChat(preferredTabId) {
+  const tab = await resolveCaptureTab(preferredTabId);
+  if (!tab || !isValidTabId(tab.id)) {
+    throw new Error("Click the website tab you want to capture, then try again");
+  }
+
   try {
-    const tab = await chrome.tabs.get(tabId);
-    rememberTab(tab);
-    const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
-    await chrome.sidePanel.open({ tabId }).catch(() => {});
-    await chrome.runtime.sendMessage({ type: "screenshot-ready", dataUrl }).catch(() => {});
+    await chrome.tabs.update(tab.id, { active: true });
+    await sleep(150);
+  } catch (_e) {}
+
+  const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
+  rememberTab(tab);
+  await chrome.sidePanel.open({ tabId: tab.id }).catch(() => {});
+  return dataUrl;
+}
+
+async function deliverScreenshotToSidepanel(dataUrl) {
+  try {
+    await chrome.runtime.sendMessage({ type: "screenshot-ready", dataUrl });
+    return true;
+  } catch (_e) {
+    return false;
+  }
+}
+
+async function deliverCaptureErrorToSidepanel(error) {
+  try {
+    await chrome.runtime.sendMessage({
+      type: "capture-error",
+      error: String(error?.message || error),
+    });
+  } catch (_e) {}
+}
+
+async function captureAndSend(preferredTabId) {
+  try {
+    const dataUrl = await captureTabScreenshotForChat(preferredTabId);
+    await deliverScreenshotToSidepanel(dataUrl);
   } catch (e) {
     console.error("capture failed", e);
-    chrome.runtime
-      .sendMessage({ type: "capture-error", error: String(e?.message || e) })
-      .catch(() => {});
+    await deliverCaptureErrorToSidepanel(e);
   }
 }
 
@@ -517,7 +589,7 @@ async function sendPageTextToChat(tabId) {
 }
 
 function rememberTab(tab) {
-  if (tab && isBrowsableTab(tab)) {
+  if (isUsableUserTab(tab)) {
     lastBrowsedTabId = tab.id;
     lastUserTabId = tab.id;
   }
@@ -554,14 +626,17 @@ async function isAgentTargetTab(tab) {
 
 async function getCurrentUserTab() {
   const [focusedActive] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  if (focusedActive && isBrowsableTab(focusedActive) && !(await isAgentTargetTab(focusedActive))) {
+  if (
+    isUsableUserTab(focusedActive) &&
+    !(await isAgentTargetTab(focusedActive))
+  ) {
     return focusedActive;
   }
 
-  if (lastUserTabId) {
+  if (isValidTabId(lastUserTabId)) {
     try {
       const tab = await chrome.tabs.get(lastUserTabId);
-      if (isBrowsableTab(tab) && !(await isAgentTargetTab(tab))) return tab;
+      if (isUsableUserTab(tab) && !(await isAgentTargetTab(tab))) return tab;
     } catch (_e) {
       lastUserTabId = null;
     }
@@ -570,7 +645,8 @@ async function getCurrentUserTab() {
   const win = await chrome.windows.getLastFocused({ populate: true });
   const candidates = [];
   for (const t of win.tabs || []) {
-    if (isBrowsableTab(t) && !(await isAgentTargetTab(t))) candidates.push(t);
+    if (!isUsableUserTab(t)) continue;
+    if (!(await isAgentTargetTab(t))) candidates.push(t);
   }
   const activeInWin = candidates.find((t) => t.active);
   if (activeInWin) return activeInWin;

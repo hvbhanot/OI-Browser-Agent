@@ -1,6 +1,8 @@
 const frame = document.getElementById("frame");
 const loader = document.getElementById("loader");
 const captureOverlay = document.getElementById("capture");
+const captureTitle = document.getElementById("captureTitle");
+const captureSub = document.getElementById("captureSub");
 const capturePreview = document.getElementById("capturePreview");
 const sendBtn = document.getElementById("sendBtn");
 const cancelBtn = document.getElementById("cancelBtn");
@@ -8,8 +10,6 @@ const statusEl = document.getElementById("status");
 const captureBtn = document.getElementById("captureBtn");
 const fabStack = document.getElementById("fabStack");
 const agentToast = document.getElementById("agentToast");
-const connBadge = document.getElementById("connBadge");
-const connLabel = document.getElementById("connLabel");
 
 function normalizeUrl(url) {
   let u = (url || "").trim();
@@ -36,8 +36,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 frame.addEventListener("load", () => {
   loader.style.display = "none";
-  sidekickReady = false;
-  refreshConnectionStatus();
   chrome.storage.sync.get(["targetMatchUrl", "openwebuiUrl"], (result) => {
     const target =
       result.targetMatchUrl ||
@@ -47,7 +45,6 @@ frame.addEventListener("load", () => {
 });
 
 let currentScreenshot = null;
-let sidekickReady = false;
 
 function showAgentToast(message, isError) {
   if (!agentToast) return;
@@ -75,49 +72,7 @@ function formatBrowserStep(command) {
   return parts.join(" ");
 }
 
-function setConnectionBadge(state, label) {
-  if (!connBadge || !connLabel) return;
-  connBadge.classList.remove("ready", "warn", "error");
-  if (state) connBadge.classList.add(state);
-  connLabel.textContent = label;
-}
-
-async function refreshConnectionStatus() {
-  const settings = await chrome.storage.sync.get(["browserControlEnabled"]);
-  if (settings.browserControlEnabled === false) {
-    setConnectionBadge("warn", "Browser control disabled");
-    return;
-  }
-  if (!sidekickReady) {
-    setConnectionBadge("warn", "Open WebUI not ready — reload chat");
-    return;
-  }
-  try {
-    const resp = await chrome.runtime.sendMessage({ type: "sidekick-ping" });
-    if (!resp?.ok) {
-      setConnectionBadge("error", "Extension error");
-      return;
-    }
-    const tab = resp.browsedTab;
-    if (tab?.title) {
-      setConnectionBadge("ready", `Ready · ${tab.title.slice(0, 42)}`);
-    } else if (tab?.url) {
-      setConnectionBadge("ready", `Ready · ${tab.url.replace(/^https?:\/\//, "").slice(0, 48)}`);
-    } else {
-      setConnectionBadge("warn", "Ready — click a website tab");
-    }
-  } catch (_e) {
-    setConnectionBadge("error", "Extension disconnected");
-  }
-}
-
 window.addEventListener("message", async (event) => {
-  if (event.data?.type === "SIDEKICK_READY") {
-    sidekickReady = true;
-    refreshConnectionStatus();
-    return;
-  }
-
   if (!event.data || event.data.type !== "BROWSER_COMMAND") return;
   if (frame.contentWindow && event.source !== frame.contentWindow) return;
 
@@ -162,6 +117,30 @@ function pasteIntoChat(contentType, data) {
   return true;
 }
 
+function showScreenshotReady(dataUrl) {
+  currentScreenshot = dataUrl;
+  capturePreview.src = dataUrl;
+  capturePreview.style.display = "";
+  captureTitle.textContent = "Screenshot captured";
+  captureSub.textContent = "Paste it into Open WebUI chat.";
+  sendBtn.style.display = "";
+  statusEl.textContent = "";
+  statusEl.className = "";
+  captureOverlay.style.display = "flex";
+}
+
+function showCaptureError(error) {
+  currentScreenshot = null;
+  capturePreview.removeAttribute("src");
+  capturePreview.style.display = "none";
+  captureTitle.textContent = "Screenshot failed";
+  captureSub.textContent = "Switch to the website tab you want, then try again.";
+  sendBtn.style.display = "none";
+  statusEl.textContent = error || "unknown error";
+  statusEl.className = "error";
+  captureOverlay.style.display = "flex";
+}
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "auto-paste-screenshot" && msg.dataUrl) {
     pasteIntoChat("image", msg.dataUrl);
@@ -174,19 +153,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
-  if (msg.type === "screenshot-ready") {
-    currentScreenshot = msg.dataUrl;
-    capturePreview.src = msg.dataUrl;
-    statusEl.textContent = "";
-    statusEl.className = "";
-    captureOverlay.style.display = "flex";
+  if (msg.type === "screenshot-ready" && msg.dataUrl) {
+    showScreenshotReady(msg.dataUrl);
     sendResponse({ ok: true });
     return true;
   }
   if (msg.type === "capture-error") {
-    statusEl.textContent = "Capture failed: " + (msg.error || "unknown error");
-    statusEl.className = "error";
-    captureOverlay.style.display = "flex";
+    showCaptureError(msg.error);
     sendResponse({ ok: true });
     return true;
   }
@@ -204,7 +177,17 @@ captureBtn.addEventListener("click", (e) => {
     dragMoved = false;
     return;
   }
-  chrome.runtime.sendMessage({ type: "capture-request" });
+  chrome.runtime.sendMessage({ type: "capture-request" }, (resp) => {
+    if (chrome.runtime.lastError) {
+      showCaptureError(chrome.runtime.lastError.message);
+      return;
+    }
+    if (resp?.ok && resp.dataUrl) {
+      showScreenshotReady(resp.dataUrl);
+      return;
+    }
+    showCaptureError(resp?.error || "Capture failed");
+  });
 });
 
 let isDragging = false;
@@ -261,9 +244,6 @@ chrome.storage.sync.get(["fabStackPos", "fabPos"], (result) => {
   fabStack.style.bottom = "auto";
   fabStack.style.top = pos.y + "px";
 });
-
-setInterval(refreshConnectionStatus, 12000);
-refreshConnectionStatus();
 
 sendBtn.addEventListener("click", () => {
   if (!currentScreenshot) return;

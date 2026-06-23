@@ -211,65 +211,9 @@
         color: #fecaca;
       }
 
-      #connBadge {
-        position: fixed;
-        top: 8px;
-        left: 8px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(20, 20, 20, 0.92);
-        border: 1px solid #333;
-        color: #a3a3a3;
-        font-size: 11px;
-        z-index: 45;
-        pointer-events: none;
-        max-width: calc(100% - 16px);
-        transition: border-color 0.2s, color 0.2s;
-      }
-      #connBadge.ready {
-        border-color: #14532d;
-        color: #bbf7d0;
-      }
-      #connBadge.warn {
-        border-color: #713f12;
-        color: #fde68a;
-      }
-      #connBadge.error {
-        border-color: #7f1d1d;
-        color: #fecaca;
-      }
-      #connDot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #525252;
-        flex-shrink: 0;
-      }
-      #connBadge.ready #connDot {
-        background: #22c55e;
-      }
-      #connBadge.warn #connDot {
-        background: #eab308;
-      }
-      #connBadge.error #connDot {
-        background: #ef4444;
-      }
-      #connLabel {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
     </style>
   </head>
   <body>
-    <div id="connBadge" class="warn" title="Extension connection status">
-      <span id="connDot"></span>
-      <span id="connLabel">Connecting…</span>
-    </div>
-
     <div id="loader">
       <img src="icons/icon48.png" alt="Open WebUI" />
       <div class="spinner"></div>
@@ -289,8 +233,8 @@
     </div>
 
     <div id="capture">
-      <h2>Screenshot captured</h2>
-      <p class="sub">Paste it into Open WebUI chat.</p>
+      <h2 id="captureTitle">Screenshot captured</h2>
+      <p id="captureSub" class="sub">Paste it into Open WebUI chat.</p>
       <img id="capturePreview" alt="screenshot" />
       <div class="actions">
         <button id="cancelBtn" class="btn">Cancel</button>
