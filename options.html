@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>OpenWebUI Sidekick Options</title>
+    <title>Open WebUI Browser Agent Options</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -11,14 +11,25 @@
         padding: 0 24px;
         color: #0f172a;
       }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .brand img {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        flex-shrink: 0;
+      }
       h1 {
         font-size: 20px;
-        margin-bottom: 6px;
+        margin: 0 0 4px;
       }
       p.sub {
         color: #64748b;
-        margin-top: 0;
-        margin-bottom: 24px;
+        margin: 0;
       }
       label {
         display: block;
@@ -73,15 +84,34 @@
         border-radius: 8px;
         border: 1px solid #e2e8f0;
         font-size: 12px;
+        line-height: 1.5;
+      }
+      .info a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .info a:hover {
+        text-decoration: underline;
+      }
+      .attribution {
+        margin-top: 24px;
+        font-size: 11px;
+        color: #94a3b8;
       }
     </style>
   </head>
   <body>
-    <h1>OpenWebUI Sidekick</h1>
-    <p class="sub">Configure the OpenWebUI instance the side panel loads.</p>
+    <div class="brand">
+      <img src="icons/icon48.png" alt="Open WebUI" />
+      <div>
+        <h1>Open WebUI Browser Agent</h1>
+        <p class="sub">Configure the Open WebUI instance the side panel loads.</p>
+      </div>
+    </div>
 
     <div class="row">
-      <label for="url">OpenWebUI URL</label>
+      <label for="url">Open WebUI URL</label>
       <input id="url" type="text" placeholder="http://localhost:3000" />
       <div class="hint">
         e.g. <code>http://localhost:3000</code> or
@@ -98,18 +128,45 @@
       </div>
     </div>
 
+    <div class="row">
+      <label>
+        <input id="browserControl" type="checkbox" checked />
+        Enable AI browser control
+      </label>
+      <div class="hint">
+        Lets Open WebUI tools navigate, click, type, and read the active tab via
+        the Browser Agent community tool.
+      </div>
+    </div>
+
+    <div class="row">
+      <label>
+        <input id="autoScreenshot" type="checkbox" checked />
+        Also paste screenshots into chat
+      </label>
+      <div class="hint">
+        Recommended. Shows each step screenshot in chat while the model uses
+        vision via the tool. Disable to reduce chat clutter.
+      </div>
+    </div>
+
     <div class="info">
-      <strong>Screenshots & page text:</strong> Use the floating buttons in the
-      side panel — 📄 inserts the current page text as a file, 📸 captures the
-      visible tab and pastes the screenshot into chat. Enable
-      <strong>"Paste Large Text as File"</strong> in OpenWebUI Settings →
-      Interface for text insertion to work. You can also use the keyboard
-      shortcut <kbd>Ctrl/⌘+Shift+Y</kbd> or the right-click menu for
-      screenshots.
+      <strong>Extension (this repo):</strong> side panel + screenshot button<br />
+      <strong>Browser Agent tool:</strong>
+      <a href="https://openwebui.com/search?type=tool" target="_blank" rel="noopener"
+        >Install from Open WebUI Community</a
+      >
+      — search for “Browser Agent”. Requires a vision model + Native function calling.
     </div>
 
     <button id="save">Save</button>
     <span id="status">Saved</span>
+
+    <p class="attribution">
+      Open WebUI icon ©
+      <a href="https://docs.openwebui.com/brand/" target="_blank" rel="noopener">Open WebUI</a>
+      project. Used per official brand guidelines.
+    </p>
 
     <script src="options.js"></script>
   </body>

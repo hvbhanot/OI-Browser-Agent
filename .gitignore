@@ -1,0 +1,8 @@
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Browser Agent tool — published to openwebui.com community, not this repo
+community/

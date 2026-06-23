@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "OpenWebUI Sidekick",
-  "version": "1.2.0",
-  "description": "Open OpenWebUI in the Chrome side panel and push screenshots/page text from any tab.",
+  "name": "Open WebUI Browser Agent",
+  "version": "1.8.1",
+  "description": "Open WebUI side panel with vision-based browser control, screenshots, and AI page automation.",
   "permissions": ["sidePanel", "scripting", "activeTab", "tabs", "storage", "contextMenus"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_title": "Open OpenWebUI side panel",
+    "default_title": "Open WebUI Browser Agent",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -19,6 +19,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-agent.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "options_page": "options.html",
   "commands": {
     "capture-and-send": {
@@ -26,7 +33,7 @@
         "default": "Ctrl+Shift+Y",
         "mac": "Command+Shift+Y"
       },
-      "description": "Capture the visible tab and send the screenshot to OpenWebUI."
+      "description": "Capture the visible tab and send the screenshot to Open WebUI."
     }
   },
   "icons": {

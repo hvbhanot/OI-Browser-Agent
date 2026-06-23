@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>OpenWebUI</title>
+    <title>Open WebUI</title>
     <style>
       html,
       body {
@@ -29,6 +29,11 @@
         color: #e5e5e5;
         background: #0f0f0f;
         z-index: 10;
+      }
+      #loader img {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
       }
       .spinner {
         width: 28px;
@@ -152,22 +157,140 @@
         fill: currentColor;
         pointer-events: none;
       }
+      .fab-stack {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 50;
+      }
+      .fab-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .fab-label {
+        font-size: 10px;
+        color: #a3a3a3;
+        pointer-events: none;
+        user-select: none;
+      }
+      #captureBtn.fab {
+        left: auto;
+        top: auto;
+        position: relative;
+      }
+
+      #agentToast {
+        position: fixed;
+        bottom: 130px;
+        left: 50%;
+        transform: translateX(-50%) translateY(8px);
+        background: rgba(30, 30, 30, 0.95);
+        border: 1px solid #333;
+        color: #e5e5e5;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        z-index: 60;
+        pointer-events: none;
+        max-width: 90%;
+        text-align: center;
+      }
+      #agentToast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      #agentToast.error {
+        border-color: #7f1d1d;
+        color: #fecaca;
+      }
+
+      #connBadge {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(20, 20, 20, 0.92);
+        border: 1px solid #333;
+        color: #a3a3a3;
+        font-size: 11px;
+        z-index: 45;
+        pointer-events: none;
+        max-width: calc(100% - 16px);
+        transition: border-color 0.2s, color 0.2s;
+      }
+      #connBadge.ready {
+        border-color: #14532d;
+        color: #bbf7d0;
+      }
+      #connBadge.warn {
+        border-color: #713f12;
+        color: #fde68a;
+      }
+      #connBadge.error {
+        border-color: #7f1d1d;
+        color: #fecaca;
+      }
+      #connDot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #525252;
+        flex-shrink: 0;
+      }
+      #connBadge.ready #connDot {
+        background: #22c55e;
+      }
+      #connBadge.warn #connDot {
+        background: #eab308;
+      }
+      #connBadge.error #connDot {
+        background: #ef4444;
+      }
+      #connLabel {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
+    <div id="connBadge" class="warn" title="Extension connection status">
+      <span id="connDot"></span>
+      <span id="connLabel">Connecting…</span>
+    </div>
+
     <div id="loader">
+      <img src="icons/icon48.png" alt="Open WebUI" />
       <div class="spinner"></div>
-      <span>Loading OpenWebUI…</span>
+      <span>Loading Open WebUI…</span>
     </div>
     <iframe id="frame" src="about:blank"></iframe>
 
-    <button id="captureBtn" class="fab" title="Capture this tab and send to OpenWebUI">
-      <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-    </button>
+    <div id="agentToast"></div>
+
+    <div id="fabStack" class="fab-stack">
+      <div class="fab-wrap">
+        <button id="captureBtn" class="fab" title="Capture this tab and send to Open WebUI">
+          <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+        </button>
+        <span class="fab-label">Screenshot</span>
+      </div>
+    </div>
 
     <div id="capture">
       <h2>Screenshot captured</h2>
-      <p class="sub">Paste it into OpenWebUI chat.</p>
+      <p class="sub">Paste it into Open WebUI chat.</p>
       <img id="capturePreview" alt="screenshot" />
       <div class="actions">
         <button id="cancelBtn" class="btn">Cancel</button>
