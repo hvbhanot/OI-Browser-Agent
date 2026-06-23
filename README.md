@@ -24,7 +24,7 @@ A Chrome extension that opens your [OpenWebUI](https://github.com/open-webui/ope
    Clone or download this folder to your machine:
 
    ```bash
-   git clone <this-repo>
+   git clone https://github.com/hvbhanot/OpenWebUI-Sidekick.git
    ```
 
    (Or just use the folder directly if you already have it.)
