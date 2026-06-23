@@ -9,7 +9,7 @@ A Chrome extension that opens your [Open WebUI](https://github.com/open-webui/op
 | Component | Install from |
 |-----------|--------------|
 | **Chrome extension** (this repo) | Git — load unpacked at `chrome://extensions` |
-| **Browser Agent tool** | [Open WebUI Community](https://openwebui.com/search?type=tool) — search “Browser Agent” |
+| **Browser Agent tool** | [Open WebUI Community](https://openwebui.com/posts/ac289350-7739-4c22-bd94-4eb008693ba8) |
 
 ## Features
 
@@ -24,7 +24,7 @@ A Chrome extension that opens your [Open WebUI](https://github.com/open-webui/op
 
 - Google Chrome or Microsoft Edge
 - A running [Open WebUI](https://github.com/open-webui/open-webui) instance
-- **Browser Agent** tool from [openwebui.com Community](https://openwebui.com/search?type=tool)
+- **Browser Agent** tool from [openwebui.com Community](https://openwebui.com/posts/ac289350-7739-4c22-bd94-4eb008693ba8)
 - Vision-capable model + Native function calling
 
 ## Install the extension
@@ -39,8 +39,8 @@ A Chrome extension that opens your [Open WebUI](https://github.com/open-webui/op
 
 ## Install the tool
 
-1. Go to [openwebui.com → Tools](https://openwebui.com/search?type=tool)
-2. Find and install **Open WebUI Browser Agent**
+1. Go to [Open WebUI Browser Agent on openwebui.com](https://openwebui.com/posts/ac289350-7739-4c22-bd94-4eb008693ba8)
+2. Install **Open WebUI Browser Agent**
 3. In a chat, enable the tool under **+**
 4. Use a model with **Native** function calling
 
@@ -79,7 +79,7 @@ takeover → solve_quiz_step text="A" → repeat until quiz_submitted
 └── icons/                  # Official Open WebUI icon (resized)
 ```
 
-The Browser Agent tool is **not** in this repo — install it from [Open WebUI Community](https://openwebui.com/search?type=tool).
+The Browser Agent tool is **not** in this repo — install it from [Open WebUI Community](https://openwebui.com/posts/ac289350-7739-4c22-bd94-4eb008693ba8).
 
 ## Troubleshooting
 
