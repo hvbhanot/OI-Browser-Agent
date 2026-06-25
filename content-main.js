@@ -68,6 +68,26 @@
     }
   }
 
+  // Generates a UUID-like ID that works in both secure and non-secure contexts.
+  // crypto.randomUUID() is only available in secure contexts (HTTPS or localhost),
+  // so plain HTTP LAN deployments (e.g. http://192.168.1.x:3000) need a fallback.
+  function genId() {
+    try {
+      if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        const b = new Uint8Array(16);
+        crypto.getRandomValues(b);
+        b[6] = (b[6] & 0x0f) | 0x40;
+        b[8] = (b[8] & 0x3f) | 0x80;
+        const h = [...b].map((x) => x.toString(16).padStart(2, "0"));
+        return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
+      }
+    } catch (_e) {}
+    // last-resort fallback
+    return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
   function browserCommand(command, timeoutMs) {
     const slowActions = new Set(["navigate", "search", "open_tab", "reload"]);
     const fastActions = new Set(["ping"]);
@@ -81,7 +101,7 @@
     else if (fastActions.has(action)) defaultTimeout = 10000;
 
     return new Promise((resolve, reject) => {
-      const id = crypto.randomUUID();
+      const id = genId();
       let settled = false;
 
       function finish(err, result) {
